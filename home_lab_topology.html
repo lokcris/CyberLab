@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Home lab network topology</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<style>
+  :root{
+    --navy:#0d1b2a; --navy2:#13273c; --paper:#f4f2ec; --card:#ffffff;
+    --ink:#111417; --muted:#5b6470; --line:#dcd8cd;
+    --kali:#a3342a; --win:#1d5fa0; --wazuh:#2f6d4f; --ubu:#b5691c;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);font-family:'Segoe UI',Arial,sans-serif;color:var(--ink);}
+  .sheet{max-width:1400px;margin:0 auto;padding:28px;border:3px solid var(--navy);border-radius:14px;background:var(--paper);}
+  .title{text-align:center;margin-bottom:18px;}
+  .title h1{margin:0;font-size:34px;letter-spacing:1px;color:var(--navy);}
+  .title p{margin:4px 0 0;color:var(--muted);font-size:15px;}
+  .grid{display:grid;grid-template-columns:2.4fr 1fr;gap:18px;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .panel h2{margin:0 0 10px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);
+    border-bottom:2px solid var(--navy);padding-bottom:6px;}
+  .host{grid-column:1 / 2;}
+  .host-row{display:flex;align-items:center;gap:20px;}
+  .host-icon{font-size:46px;color:var(--navy);}
+  .host-facts{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;font-size:13.5px;flex:1;}
+  .host-facts div{padding:2px 0;}
+  .host-facts i{color:var(--navy);margin-right:6px;}
+  .vbox-badge{margin-left:auto;text-align:center;font-size:12px;color:var(--muted);}
+  .vbox-badge i{font-size:30px;color:var(--navy);display:block;}
+  .net-label{text-align:center;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:16px 0 10px;}
+  .vm-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .vm{border-radius:10px;padding:12px 14px;border:1.5px solid var(--vc);background:color-mix(in srgb, var(--vc) 6%, white);}
+  .vm .icon{font-size:26px;color:var(--vc);}
+  .vm h3{margin:8px 0 2px;font-size:14px;color:var(--vc);}
+  .vm .role{font-size:11.5px;color:var(--muted);margin-bottom:8px;}
+  .vm ul{margin:0 0 10px;padding-left:16px;font-size:12px;color:var(--ink);line-height:1.5;}
+  .nic{font-size:11px;background:color-mix(in srgb, var(--vc) 12%, white);border:1px dashed var(--vc);
+    border-radius:6px;padding:5px 7px;color:var(--vc);}
+  .kali{--vc:var(--kali);} .win{--vc:var(--win);} .waz{--vc:var(--wazuh);} .ubu{--vc:var(--ubu);}
+  .switch{text-align:center;margin:16px 0 4px;}
+  .switch i{font-size:30px;color:var(--navy);}
+  .switch div{font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+  .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;}
+  .side{display:flex;flex-direction:column;gap:16px;}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;}
+  .kv span:first-child{color:var(--muted);}
+  .blocked{color:var(--kali);font-weight:600;}
+  ul.plain{margin:0;padding-left:0;list-style:none;font-size:13px;line-height:1.9;}
+  ul.plain li i{color:#2f6d2f;margin-right:8px;}
+  .flow{display:flex;align-items:center;justify-content:space-between;text-align:center;font-size:12px;margin:6px 0 14px;}
+  .flow i{font-size:24px;display:block;margin-bottom:4px;}
+  .flow .arrow{font-size:18px;color:var(--muted);}
+  .flow .kali-c i{color:var(--kali);} .flow .win-c i{color:var(--win);} .flow .ubu-c i{color:var(--ubu);}
+  .to-waz{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--wazuh);margin-bottom:4px;}
+  .to-waz i{font-size:22px;}
+  .legend-line{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0;}
+  .swatch{width:14px;height:4px;border-radius:2px;}
+  .notes{margin:0;padding-left:16px;font-size:13px;line-height:1.8;color:var(--ink);}
+  .arch ul{margin:0;padding-left:16px;font-size:13px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="title">
+    <h1>Home lab network topology</h1>
+    <p>VirtualBox air-gapped lab — Kali (attacker) vs Windows 11 &amp; Ubuntu (victims), monitored by Wazuh SIEM / XDR</p>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel host">
+        <h2>Physical host</h2>
+        <div class="host-row">
+          <i class="ti ti-device-desktop host-icon" aria-hidden="true"></i>
+          <div class="host-facts">
+            <div><i class="ti ti-brand-windows"></i>Windows 11 Pro</div>
+            <div><i class="ti ti-world"></i>Internet-connected</div>
+            <div><i class="ti ti-shield-check"></i>Firewall enabled</div>
+            <div><i class="ti ti-radar"></i>Wazuh agent installed</div>
+          </div>
+          <div class="vbox-badge">
+            <i class="ti ti-cube"></i>
+            Oracle VirtualBox
+          </div>
+        </div>
+      </div>
+
+      <div class="net-label">Internal network — isolated, no internet access</div>
+
+      <div class="vm-row">
+        <div class="vm kali">
+          <i class="ti ti-bug icon" aria-hidden="true"></i>
+          <h3>Kali Linux</h3>
+          <div class="role">Attacker</div>
+          <ul>
+            <li>Recon &amp; exploitation tools</li>
+            <li>Traffic capture</li>
+            <li>Payload delivery</li>
+          </ul>
+          <div class="nic">Internal-only NIC</div>
+        </div>
+        <div class="vm win">
+          <i class="ti ti-brand-windows icon" aria-hidden="true"></i>
+          <h3>Windows 11 VM</h3>
+          <div class="role">Victim / agent</div>
+          <ul>
+            <li>Wazuh agent</li>
+            <li>Sysmon logging</li>
+            <li>Windows event logs</li>
+          </ul>
+          <div class="nic">Internal + host-only NIC</div>
+        </div>
+        <div class="vm waz">
+          <i class="ti ti-radar-2 icon" aria-hidden="true"></i>
+          <h3>Wazuh SIEM / XDR</h3>
+          <div class="role">Log manager</div>
+          <ul>
+            <li>Wazuh manager</li>
+            <li>Indexer &amp; dashboard</li>
+            <li>Rule correlation</li>
+          </ul>
+          <div class="nic">Internal + host-only NIC</div>
+        </div>
+        <div class="vm ubu">
+          <i class="ti ti-brand-ubuntu icon" aria-hidden="true"></i>
+          <h3>Ubuntu PC VM</h3>
+          <div class="role">Victim / agent</div>
+          <ul>
+            <li>Wazuh agent</li>
+            <li>Event logging</li>
+            <li>System &amp; auth logs</li>
+          </ul>
+          <div class="nic">Internal + host-only NIC</div>
+        </div>
+      </div>
+
+      <div class="switch">
+        <i class="ti ti-transform" aria-hidden="true"></i>
+        <div>Internal virtual switch</div>
+      </div>
+
+      <div class="panel arch" style="margin-top:16px;">
+        <h2>Architecture notes</h2>
+        <ul>
+          <li>Host runs Oracle VirtualBox as the sole hypervisor for all four guests.</li>
+          <li>Attacker and victims share one internal-only network — no NAT, no bridged adapter.</li>
+          <li>Victim VMs and the Wazuh manager carry a second, host-only adapter dedicated to agent-to-manager traffic.</li>
+          <li>The physical host runs its own Wazuh agent, reporting over that same host-only link — kept apart from Kali's segment.</li>
+        </ul>
+      </div>
+	  
+	  <div class="panel arch" style="margin-top:16px;">
+        <h2>BENEFITS OF THIS SETUP</h2>
+        <ul>
+          <li>Safe, isolated environment</li>
+          <li>Realistic attacker vs victim simulation</li>
+          <li>Hands-on SOC / Blue Team experience</li>
+          <li>Full visibility with Wazuh SIEM / XDR</li>
+          <li>Full visibility with Wazuh SIEM / XDR</li>
+          <li>Zero risk to host or external network</li>
+		  <li>Ideal for learning, testing & certification prep</li>
+        </ul>
+		
+      </div>
+    </div>
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="side">
+      <div class="panel">
+        <h2>Network summary</h2>
+        <div class="kv">
+          <span>Attack network</span><span>Internal-only (no internet)</span>
+          <span>Management network</span><span>Host-only adapter</span>
+          <span>Gateway</span><span>None — isolated</span>
+          <span>Internet reachable from VMs</span><span class="blocked">Blocked</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Security controls</h2>
+        <ul class="plain">
+          <li><i class="ti ti-circle-check"></i>Host firewall enabled</li>
+          <li><i class="ti ti-circle-check"></i>No bridged adapter on any VM</li>
+          <li><i class="ti ti-circle-check"></i>No internet access for guest VMs</li>
+          <li><i class="ti ti-circle-check"></i>Dedicated host-only agent link</li>
+          <li><i class="ti ti-circle-check"></i>Snapshots before every exercise</li>
+        </ul>
+      </div>
+
+
+      <div class="panel">
+        <h2>Monitoring &amp; visibility</h2>
+        <ul class="plain">
+          <li><i class="ti ti-circle-check"></i>Wazuh Central log collection from all agents</li>
+          <li><i class="ti ti-circle-check"></i>Real-time alerting and correlation</li>
+          <li><i class="ti ti-circle-check"></i>Wazuh Dashboards for triage practice</li>
+          <li><i class="ti ti-circle-check"></i>MITRE ATT&amp;CK rule mapping</li>
+          <li><i class="ti ti-circle-check"></i>Threat detection and response</li>
+          <li><i class="ti ti-circle-check"></i>Real-time alerting and correlation</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h2>Legend</h2>
+        <div class="legend-line"><span class="swatch" style="background:var(--kali)"></span>Attacker</div>
+        <div class="legend-line"><span class="swatch" style="background:var(--win)"></span>Victim — Windows</div>
+        <div class="legend-line"><span class="swatch" style="background:var(--ubu)"></span>Victim — Ubuntu</div>
+        <div class="legend-line"><span class="swatch" style="background:var(--wazuh)"></span>SIEM / monitoring</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
